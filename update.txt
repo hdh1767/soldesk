@@ -1,0 +1,66 @@
+1. boardUpdate.jsp
+
+<form name="frm" method="post" action="BoardServlet">
+>> 서브밋 버튼을 누르면 보드서블릿 페이지로 넘어간다
+<input type="hidden" name="command" value="board_update">
+>> 보드 서블릿으로 넘어갈때 커맨드 값으로 "board_update" 를 가져간다
+
+<td><input type="text" size="12" name="name" value="${board.name}"> * 필수</td>
+>> 인풋타입 택스트 안에 적힌값을 벨류값으로 받아서 넘어감
+
+
+2. BoardServlet.java
+
+	String command = request.getParameter("command");
+>>보어드업데이트 에서 받은 커맨드값을 스트링커맨드에 입력
+		System.out.println("BoardServlet에서 요청을 받음을 확인 : " + command);
+
+
+		ActionFactory af=ActionFactory.getInstance();
+>> 액션팩토 인스턴스 생성
+		Action action=af.getAction(command);
+>>액션에 커맨드값을 삽입
+		if(action != null){
+		action.execute(request, response);
+>>액션페이지로
+
+3. Action.java
+public void execute(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException;
+>>유효성 검사, 액션팩토리로.
+
+4. ActionFactory.java
+	if (command.equals("board_list")) {
+			action = new BoardListAction();
+		} else if (command.equals("board_write_form")) {
+.....	return action;
+	}
+>> 입력 받은 커맨드 값에 따라서 해당 페이지로 이동.
+
+5. BoardUpdateAction
+	public void execute(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		BoardVO bVo = new BoardVO();
+		bVo.setNum(Integer.parseInt(request.getParameter("num")));
+		bVo.setName(request.getParameter("name"));
+		bVo.setPass(request.getParameter("pass"));
+		bVo.setEmail(request.getParameter("email"));
+		bVo.setTitle(request.getParameter("title"));
+		bVo.setContent(request.getParameter("content"));
+		BoardDAO bDao = BoardDAO.getInstance();
+		bDao.updateBoard(bVo);
+		new BoardListAction().execute(request, response);
+>> 첫번째 페이지에서 인풋타입텍스트로 입력받은 값들을 파라미터로 받고, 보어드리스트액션 으로 이동
+
+6.BoardListAction
+String url = "/boardList.jsp";
+		BoardDAO bDao = BoardDAO.getInstance();
+		List<BoardVO> boardList = bDao.selectAllBoards();
+		request.setAttribute("boardList", boardList);
+		RequestDispatcher dispatcher = request.getRequestDispatcher(url);
+		dispatcher.forward(request, response);
+>>리스트에도 값들을 입력하고 보어드리스트 페이지로 이동.
+
+7.boardList.jsp
+받아온 값들을 리스트에 출력
+
